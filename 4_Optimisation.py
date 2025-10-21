@@ -37,5 +37,22 @@ with gp.Model("portfolio") as model :
     # Maximum k actifs sélectionnés
     model.addConstr(gp.quicksum(y[j] for j in range(n)) <= k, name="max_assets") 
 
-    model.addConstr
+    # Lien entre x et y
+    for j in range(n):
+        model.addConstr(x[j] <= y[j], name=f"link_{j}")
+
+    # --- Résolution ---
+    model.optimize()
+
+    # --- Résultats ---
+    portfolio = [x[j].X for j in range(n)]
+    risk = model.ObjVal
+    expected_return = sum(mu[j] * x[j].X for j in range(n))
+
+    df = pd.DataFrame(
+        data=portfolio + [risk, expected_return],
+        index=[f"asset_{i}" for i in range(n)] + ["risk", "return"],
+        columns=["Portfolio"],
+    )
+    print(df)
 
